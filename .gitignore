@@ -17,6 +17,16 @@ Thumbs.db
 node_modules/
 dist/
 build/
+.gradle/
+
+# Android / Gradle
+local.properties
+*/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
 
 # Python
 __pycache__/
