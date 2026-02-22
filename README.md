@@ -37,6 +37,17 @@ cd c:\Projects\yt-shortless
 APK output:
 - `app\build\outputs\apk\debug\app-debug.apk`
 
+## Versioning and Releases
+- Versioning follows Semantic Versioning (`MAJOR.MINOR.PATCH`).
+- Update values in `gradle.properties`:
+	- `VERSION_MAJOR`
+	- `VERSION_MINOR`
+	- `VERSION_PATCH`
+- `versionName` is generated as `MAJOR.MINOR.PATCH`.
+- `versionCode` is generated as `MAJOR * 10000 + MINOR * 100 + PATCH`.
+- Add release notes in `CHANGELOG.md` before each release.
+- Print current values with: `./gradlew :app:printVersion` (PowerShell: `.\gradlew.bat :app:printVersion`).
+
 ## Notes
 - If you need to update the Gradle wrapper, download the official Gradle ZIP and copy `gradle-wrapper.jar` from `lib`.
 - Shorts selectors can be expanded in `MainActivity.kt` if YouTube updates its DOM.
