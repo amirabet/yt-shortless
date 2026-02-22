@@ -37,6 +37,59 @@ cd c:\Projects\yt-shortless
 APK output:
 - `app\build\outputs\apk\debug\app-debug.apk`
 
+## Release Signing (Shareable APK)
+1. Set Java for the current PowerShell session:
+
+```powershell
+$env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
+$env:Path="$env:JAVA_HOME\bin;$env:Path"
+```
+
+2. Generate a release keystore (one-time):
+
+```powershell
+keytool -genkeypair -v -keystore release-keystore.jks -alias release -keyalg RSA -keysize 2048 -validity 10000
+```
+
+3. Create signing config file from template:
+	- Copy `keystore.properties.example` to `keystore.properties`.
+	- Fill `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
+	- If the keystore is in project root, use: `storeFile=../release-keystore.jks`.
+
+4. (Optional) Validate signing config:
+
+```powershell
+.\gradlew.bat :app:validateReleaseSigning
+```
+
+5. Build signed release APK:
+
+```powershell
+.\gradlew.bat :app:assembleRelease
+```
+
+Release output:
+- `app\build\outputs\apk\release\app-release.apk`
+
+Important:
+- Keep `release-keystore.jks` and `keystore.properties` backed up securely.
+- You must keep the same keystore to publish future updates with the same package name.
+
+### Troubleshooting release builds
+- Error: `Missing keystore.properties`
+	- Fix: copy `keystore.properties.example` to `keystore.properties` and fill all values.
+- Error: `Keystore file ... not found`
+	- Fix: if keystore is in project root, set `storeFile=../release-keystore.jks`.
+- Error: `Get Key failed: Given final block not properly padded`
+	- Fix: for PKCS12 keystores, use the same value for `storePassword` and `keyPassword`.
+- Error: `JAVA_HOME is not set`
+	- Fix: set PowerShell session vars before build:
+
+```powershell
+$env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
+$env:Path="$env:JAVA_HOME\bin;$env:Path"
+```
+
 ## Versioning and Releases
 - Versioning follows Semantic Versioning (`MAJOR.MINOR.PATCH`).
 - Update values in `gradle.properties`:
@@ -47,6 +100,7 @@ APK output:
 - `versionCode` is generated as `MAJOR * 10000 + MINOR * 100 + PATCH`.
 - Add release notes in `CHANGELOG.md` before each release.
 - Print current values with: `./gradlew :app:printVersion` (PowerShell: `.\gradlew.bat :app:printVersion`).
+- Release builds validate signing config with: `.\gradlew.bat :app:validateReleaseSigning`.
 
 ## Notes
 - If you need to update the Gradle wrapper, download the official Gradle ZIP and copy `gradle-wrapper.jar` from `lib`.

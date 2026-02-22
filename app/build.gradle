@@ -3,15 +3,37 @@ plugins {
     id "org.jetbrains.kotlin.android"
 }
 
+import java.util.Properties
+
 def versionMajor = project.findProperty("VERSION_MAJOR")?.toString()?.toInteger() ?: 1
 def versionMinor = project.findProperty("VERSION_MINOR")?.toString()?.toInteger() ?: 0
 def versionPatch = project.findProperty("VERSION_PATCH")?.toString()?.toInteger() ?: 0
 def appVersionName = "${versionMajor}.${versionMinor}.${versionPatch}"
 def appVersionCode = (versionMajor * 10000) + (versionMinor * 100) + versionPatch
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+def hasReleaseSigning = keystorePropertiesFile.exists()
+
+if (hasReleaseSigning) {
+    keystorePropertiesFile.withInputStream { stream ->
+        keystoreProperties.load(stream)
+    }
+}
 
 android {
     namespace "com.example.ytshortless"
     compileSdk 34
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(keystoreProperties["storeFile"])
+                storePassword keystoreProperties["storePassword"]
+                keyAlias keystoreProperties["keyAlias"]
+                keyPassword keystoreProperties["keyPassword"]
+            }
+        }
+    }
 
     defaultConfig {
         applicationId "com.example.ytshortless"
@@ -25,6 +47,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
@@ -45,6 +70,21 @@ tasks.register("printVersion") {
         println("versionName=${appVersionName}")
         println("versionCode=${appVersionCode}")
     }
+}
+
+tasks.register("validateReleaseSigning") {
+    group = "versioning"
+    description = "Validates release signing setup in keystore.properties"
+    doLast {
+        if (!hasReleaseSigning) {
+            throw new GradleException("Missing keystore.properties. Copy keystore.properties.example and fill release signing values.")
+        }
+    }
+}
+
+afterEvaluate {
+    tasks.findByName("assembleRelease")?.dependsOn("validateReleaseSigning")
+    tasks.findByName("bundleRelease")?.dependsOn("validateReleaseSigning")
 }
 
 dependencies {

@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
 ## [Unreleased]
+### Added
+- Release signing setup via `keystore.properties` (with `keystore.properties.example` template).
+- `validateReleaseSigning` Gradle task to ensure release credentials are configured.
+
+### Changed
+- Release build now uses configured signing credentials when available.
 
 ## [1.0.1] - 2026-02-22
 ### Added
