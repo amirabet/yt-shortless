@@ -54,16 +54,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun injectShortsHidingCss(view: WebView) {
         val css = """
+            ytm-pivot-bar-renderer > ytm-pivot-bar-item-renderer:nth-of-type(2),
             ytd-reel-shelf-renderer,
             ytd-reel-shelf-renderer[is-shorts],
             ytm-reel-shelf-renderer,
             ytd-shorts,
             ytm-shorts-shelf-renderer,
             ytd-rich-section-renderer[is-shorts],
-            a[aria-label*='Shorts'],
-            a[href^='/shorts'],
-            ytm-pivot-bar-item-renderer[aria-label='Shorts'],
-            ytd-mini-guide-entry-renderer[aria-label='Shorts'] {
+            ytm-shorts-lockup-view-model,
+            .big-shorts-singleton,
+            a[aria-label*='shorts' i],
+            a[title*='shorts' i],
+            a[href*='/shorts' i],
+            ytm-pivot-bar-item-renderer[aria-label*='shorts' i],
+            ytd-mini-guide-entry-renderer[aria-label*='shorts' i] {
                 display: none !important;
             }
         """.trimIndent()
