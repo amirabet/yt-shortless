@@ -1,6 +1,8 @@
 # YT Shortless
 
-This simple Android tries to offer the closest Youtube experience (basded on mobile web) but hiding all Shorts stuff releated in the easyest possible way.
+This simple Android tries to offer the closest Youtube experience (based on mobile web) but hiding all Shorts stuff releated in the easyest possible way.
+This projecy is for personal use and with no commercial goals.
+Has been created using VibeCoding methodology using Copilot in VSCode.
 
 ## Requirements
 - Android Studio (Giraffe+ recommended)
@@ -105,3 +107,7 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 ## Notes
 - If you need to update the Gradle wrapper, download the official Gradle ZIP and copy `gradle-wrapper.jar` from `lib`.
 - Shorts selectors can be expanded in `MainActivity.kt` if YouTube updates its DOM.
+
+## License
+- This project is licensed under the MIT License.
+- See `LICENSE` for full text.
