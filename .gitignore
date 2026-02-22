@@ -21,11 +21,13 @@ build/
 
 # Android / Gradle
 local.properties
+keystore.properties
+*.jks
+*.keystore
 */build/
 captures/
 .externalNativeBuild/
 .cxx/
-*.apk
 *.aab
 
 # Python
