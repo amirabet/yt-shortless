@@ -1,8 +1,7 @@
 # YT Shortless
 
-This simple Android tries to offer the closest Youtube experience (based on mobile web) but hiding all Shorts stuff releated in the easyest possible way.
-This projecy is for personal use and with no commercial goals.
-Has been created using VibeCoding methodology using Copilot in VSCode.
+This simple Android App tries to offer the closest Youtube experience (based on mobile web) but hiding all Shorts stuff releated in the easyest possible way.
+This project is for personal use and with no commercial goals (MIT), and has been created using VibeCoding methodology using Copilot in VSCode.
 
 ## Requirements
 - Android Studio (Giraffe+ recommended)
