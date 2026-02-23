@@ -24,7 +24,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        webView.loadUrl("https://m.youtube.com")
+        if (savedInstanceState == null) {
+            webView.loadUrl("https://m.youtube.com")
+        } else {
+            webView.restoreState(savedInstanceState)
+            webView.post { injectShortsHidingCss(webView) }
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -36,6 +41,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        webView.saveState(outState)
     }
 
     private fun configureWebView(view: WebView) {
