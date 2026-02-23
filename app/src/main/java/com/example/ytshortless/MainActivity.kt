@@ -125,6 +125,10 @@ class MainActivity : AppCompatActivity() {
         settings.cacheMode = WebSettings.LOAD_DEFAULT
         settings.loadsImagesAutomatically = true
         settings.mediaPlaybackRequiresUserGesture = false
+        settings.useWideViewPort = true
+        settings.textZoom = 100
+        settings.userAgentString = WebSettings.getDefaultUserAgent(this)
+            .replace("; wv", "")
 
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
