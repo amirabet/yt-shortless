@@ -2,6 +2,7 @@ package com.example.ytshortless
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -56,6 +57,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 previousRequestedOrientation = requestedOrientation
                 requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 enterFullscreenUi()
             }
 
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                 customViewCallback?.onCustomViewHidden()
                 customViewCallback = null
                 requestedOrientation = previousRequestedOrientation
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 exitFullscreenUi()
             }
         }
