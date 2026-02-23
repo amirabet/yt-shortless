@@ -73,6 +73,11 @@ keytool -genkeypair -v -keystore release-keystore.jks -alias release -keyalg RSA
 Release output:
 - `app\build\outputs\apk\release\app-release.apk`
 
+## APK Archive Folder
+- The project includes an `apk` folder used to keep versioned copies of generated APKs for easy sharing/testing.
+- You can browse archived packages here: [apk](apk/).
+- Naming convention example: `yt-shortless-1.2.0.apk`.
+
 Important:
 - Keep `release-keystore.jks` and `keystore.properties` backed up securely.
 - You must keep the same keystore to publish future updates with the same package name.

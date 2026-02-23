@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-23
+### Added
+- Keep-screen-on behavior while fullscreen video is active to prevent device auto-lock during playback.
+
 ## [1.1.0] - 2026-02-23
 ### Added
 - Release signing workflow with `keystore.properties` + `keystore.properties.example`.
