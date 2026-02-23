@@ -19,6 +19,7 @@ This project is for personal use and with no commercial goals (MIT), and has bee
 - Place your 432x432 foreground/background PNGs in `mipmap-xxxhdpi` as `ic_launcher_foreground.png` and `ic_launcher_background.png`.
 - Icons are auto-resized for all densities.
 - Manifest and adaptive icon XML are wired for launcher and round icons.
+- Play Store icon export (512x512) is available at `assets/branding/play-store-icon-512.png`.
 
 ## Run in Android Studio
 1. Open the project folder `c:\Projects\yt-shortless`.
