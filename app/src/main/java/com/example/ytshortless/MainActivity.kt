@@ -153,7 +153,8 @@ class MainActivity : AppCompatActivity() {
             a[title*='shorts' i],
             a[href*='/shorts' i],
             ytm-pivot-bar-item-renderer[aria-label*='shorts' i],
-            ytd-mini-guide-entry-renderer[aria-label*='shorts' i] {
+            ytd-mini-guide-entry-renderer[aria-label*='shorts' i],
+            ytm-open-app-promo-renderer {
                 display: none !important;
             }
         """.trimIndent()
