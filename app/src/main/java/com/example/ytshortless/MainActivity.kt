@@ -2,9 +2,11 @@ package com.example.ytshortless
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -17,6 +19,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     private lateinit var webView: WebView
     private lateinit var fullscreenContainer: FrameLayout
     private var customView: View? = null
@@ -32,6 +38,14 @@ class MainActivity : AppCompatActivity() {
         configureWebView(webView)
 
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                val isIntentUrl = request.url.scheme?.equals("intent", ignoreCase = true) == true
+                if (isIntentUrl) {
+                    Log.d(TAG, "Blocked intent URL in WebView: ${request.url}")
+                }
+                return isIntentUrl
+            }
+
             override fun onPageFinished(view: WebView, url: String) {
                 injectShortsHidingCss(view)
             }
