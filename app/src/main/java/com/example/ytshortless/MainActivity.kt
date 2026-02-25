@@ -46,6 +46,14 @@ class MainActivity : AppCompatActivity() {
                 return isIntentUrl
             }
 
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                val isIntentUrl = url.startsWith("intent://", ignoreCase = true)
+                if (isIntentUrl) {
+                    Log.d(TAG, "Blocked intent URL in WebView: $url")
+                }
+                return isIntentUrl
+            }
+
             override fun onPageFinished(view: WebView, url: String) {
                 injectShortsHidingCss(view)
             }
@@ -168,7 +176,10 @@ class MainActivity : AppCompatActivity() {
             a[href*='/shorts' i],
             ytm-pivot-bar-item-renderer[aria-label*='shorts' i],
             ytd-mini-guide-entry-renderer[aria-label*='shorts' i],
-            ytm-open-app-promo-renderer {
+            ytm-open-app-promo-renderer,
+            .mweb_c3_open_app,
+            a[href^='intent://' i][href*='mweb_c3_open_app' i],
+            a[href^='intent://' i][href*='open_app' i] {
                 display: none !important;
             }
         """.trimIndent()
