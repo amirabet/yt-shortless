@@ -1,5 +1,7 @@
 package com.example.ytshortless
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.util.Log
@@ -56,6 +58,16 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView, url: String) {
                 injectShortsHidingCss(view)
+            }
+
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                val scheme = request.url.scheme ?: return false
+                if (scheme == "http" || scheme == "https") return false
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, request.url))
+                } catch (_: ActivityNotFoundException) {
+                }
+                return true
             }
         }
 
