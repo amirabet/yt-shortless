@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView, url: String) {
                 injectShortsHidingCss(view)
+                injectScrollFix(view)
             }
         }
 
@@ -251,6 +252,32 @@ class MainActivity : AppCompatActivity() {
                     });
                     window.__ytShortlessObserver.observe(document.documentElement, { childList: true, subtree: true });
                 }
+            })();
+        """.trimIndent()
+
+        view.evaluateJavascript(script, null)
+    }
+
+    private fun injectScrollFix(view: WebView) {
+        val script = """
+            (function() {
+                if (window.__ytShortlessScrollFix) return;
+                window.__ytShortlessScrollFix = true;
+
+                let prevScrollHeight = document.documentElement.scrollHeight;
+
+                window.__ytShortlessScrollFixObserver = new MutationObserver(function() {
+                    const newScrollHeight = document.documentElement.scrollHeight;
+                    if (newScrollHeight > prevScrollHeight) {
+                        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                        const atBottom = (scrollTop + window.innerHeight) >= (prevScrollHeight - 50);
+                        if (atBottom) {
+                            window.scrollBy(0, -1);
+                        }
+                        prevScrollHeight = newScrollHeight;
+                    }
+                });
+                window.__ytShortlessScrollFixObserver.observe(document.documentElement, { childList: true, subtree: true });
             })();
         """.trimIndent()
 
