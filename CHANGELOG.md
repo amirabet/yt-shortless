@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-02-28
+### Fixed
+- Infinite-scroll stabilization in `MainActivity.kt` (`injectScrollFix`) to prevent YouTube feed scroll from getting stuck at the bottom when new content is appended.
+
 ## [1.4.0] - 2026-02-28
 ### Added
 - Additional Shorts shelf cleanup by hiding section headers/shelves that contain "shorts" text in dynamic page blocks.
