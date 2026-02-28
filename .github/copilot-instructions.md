@@ -50,6 +50,20 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 # Output: app/build/outputs/apk/release/app-release.apk
 ```
 
+### Archive release APK (required after every release build)
+After each successful `assembleRelease`, copy the generated APK into the `apk/` folder using the versioned naming format:
+
+- `apk/yt-shortless-<versionName>.apk`
+
+Windows PowerShell example:
+```powershell
+$version = (& .\gradlew.bat -q :app:printVersion | Select-String 'versionName=').ToString().Split('=')[1].Trim()
+$src = 'app/build/outputs/apk/release/app-release.apk'
+$dst = "apk/yt-shortless-$version.apk"
+if (Test-Path $dst) { Remove-Item $dst -Force }
+Copy-Item -Path $src -Destination $dst -Force
+```
+
 ### Utility tasks
 ```bash
 ./gradlew :app:printVersion          # Print current versionName and versionCode
@@ -61,6 +75,8 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 - Update `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH` in `gradle.properties`.
 - `versionCode` = `MAJOR * 10000 + MINOR * 100 + PATCH`.
 - Document every release in `CHANGELOG.md` before tagging.
+- Changelog entries must describe real user-visible changes/fixes; avoid redundant bullets that only restate the release version/versionCode.
+- Archive every release APK in `apk/` with versioned filename right after building.
 
 ## Coding Conventions
 - Follow the **official Kotlin code style** (`kotlin.code.style=official` in `gradle.properties`).
