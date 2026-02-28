@@ -232,11 +232,22 @@ class MainActivity : AppCompatActivity() {
                 style.appendChild(document.createTextNode(${escapeForJs(css)}));
                 document.head.appendChild(style);
 
+                function hideShortsSectionHeaders() {
+                    document.querySelectorAll('yt-section-header-view-model').forEach(function(header) {
+                        if (header.textContent.toLowerCase().indexOf('shorts') !== -1) {
+                            var shelf = header.closest('grid-shelf-view-model') || header.parentElement;
+                            if (shelf) { shelf.style.setProperty('display', 'none', 'important'); }
+                        }
+                    });
+                }
+                hideShortsSectionHeaders();
+
                 if (!window.__ytShortlessObserver) {
                     window.__ytShortlessObserver = new MutationObserver(function() {
                         if (!document.getElementById(styleId)) {
                             document.head.appendChild(style);
                         }
+                        hideShortsSectionHeaders();
                     });
                     window.__ytShortlessObserver.observe(document.documentElement, { childList: true, subtree: true });
                 }
