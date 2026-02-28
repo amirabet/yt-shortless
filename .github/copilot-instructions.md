@@ -75,6 +75,7 @@ Copy-Item -Path $src -Destination $dst -Force
 - Update `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH` in `gradle.properties`.
 - `versionCode` = `MAJOR * 10000 + MINOR * 100 + PATCH`.
 - Document every release in `CHANGELOG.md` before tagging.
+- Changelog entries must describe real user-visible changes/fixes; avoid redundant bullets that only restate the release version/versionCode.
 - Archive every release APK in `apk/` with versioned filename right after building.
 
 ## Coding Conventions

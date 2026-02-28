@@ -3,7 +3,9 @@ package com.example.ytshortless
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
@@ -20,6 +22,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     private lateinit var webView: WebView
     private lateinit var fullscreenContainer: FrameLayout
     private var customView: View? = null
@@ -35,18 +41,17 @@ class MainActivity : AppCompatActivity() {
         configureWebView(webView)
 
         webView.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView, url: String) {
-                injectShortsHidingCss(view)
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                return handleUrlOverride(request.url.toString())
             }
 
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                val scheme = request.url.scheme ?: return false
-                if (scheme == "http" || scheme == "https") return false
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, request.url))
-                } catch (_: ActivityNotFoundException) {
-                }
-                return true
+            @Suppress("DEPRECATION")
+            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                return handleUrlOverride(url)
+            }
+
+            override fun onPageFinished(view: WebView, url: String) {
+                injectShortsHidingCss(view)
             }
         }
 
@@ -120,6 +125,47 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    private fun handleUrlOverride(rawUrl: String): Boolean {
+        val lowerUrl = rawUrl.lowercase()
+
+        if (lowerUrl.startsWith("intent://")) {
+            val isYouTubeOpenAppIntent = lowerUrl.contains("mweb_c3_open_app") ||
+                lowerUrl.contains("package=com.google.android.youtube")
+
+            if (isYouTubeOpenAppIntent) {
+                Log.d(TAG, "Blocked YouTube open-app intent: $rawUrl")
+                return true
+            }
+
+            try {
+                val intent = Intent.parseUri(rawUrl, Intent.URI_INTENT_SCHEME).apply {
+                    addCategory(Intent.CATEGORY_BROWSABLE)
+                    component = null
+                    selector = null
+                }
+                startActivity(intent)
+            } catch (_: ActivityNotFoundException) {
+                Log.d(TAG, "No app found for intent URL: $rawUrl")
+            } catch (_: Exception) {
+                Log.d(TAG, "Failed to parse intent URL: $rawUrl")
+            }
+            return true
+        }
+
+        val uri = Uri.parse(rawUrl)
+        val scheme = uri.scheme?.lowercase()
+        if (scheme == "http" || scheme == "https") {
+            return false
+        }
+
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, uri))
+        } catch (_: ActivityNotFoundException) {
+            Log.d(TAG, "No app found for external URL: $rawUrl")
+        }
+        return true
+    }
+
     private fun enterFullscreenUi() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
@@ -166,7 +212,11 @@ class MainActivity : AppCompatActivity() {
             a[title*='shorts' i],
             a[href*='/shorts' i],
             ytm-pivot-bar-item-renderer[aria-label*='shorts' i],
-            ytd-mini-guide-entry-renderer[aria-label*='shorts' i] {
+            ytd-mini-guide-entry-renderer[aria-label*='shorts' i],
+            ytm-open-app-promo-renderer,
+            .mweb_c3_open_app,
+            a[href^='intent://' i][href*='mweb_c3_open_app' i],
+            a[href^='intent://' i][href*='open_app' i] {
                 display: none !important;
             }
         """.trimIndent()
