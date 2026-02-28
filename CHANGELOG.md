@@ -6,10 +6,16 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-02-28
+### Added
+- Additional Shorts shelf cleanup by hiding section headers/shelves that contain "shorts" text in dynamic page blocks.
+
 ## [1.3.1] - 2026-02-28
 ### Fixed
 - Restored sharing to external services by allowing non-YouTube `intent://` links to open their target apps.
 - Kept YouTube "open in app" blocked by filtering only YouTube-specific app-launch intents (`mweb_c3_open_app` / YouTube package intents).
+- Unified URL override handling in WebView to avoid duplicate override logic and improve consistency across Android API levels.
+- Preserved external sharing behavior while still blocking YouTube "open in app" intent redirects.
 
 ## [1.3.0] - 2026-02-24
 ### Fixed
