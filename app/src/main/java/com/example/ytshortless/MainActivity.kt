@@ -3,6 +3,7 @@ package com.example.ytshortless
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -41,33 +42,16 @@ class MainActivity : AppCompatActivity() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                val isIntentUrl = request.url.scheme?.equals("intent", ignoreCase = true) == true
-                if (isIntentUrl) {
-                    Log.d(TAG, "Blocked intent URL in WebView: ${request.url}")
-                }
-                return isIntentUrl
+                return handleUrlOverride(request.url.toString())
             }
 
+            @Suppress("DEPRECATION")
             override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                val isIntentUrl = url.startsWith("intent://", ignoreCase = true)
-                if (isIntentUrl) {
-                    Log.d(TAG, "Blocked intent URL in WebView: $url")
-                }
-                return isIntentUrl
+                return handleUrlOverride(url)
             }
 
             override fun onPageFinished(view: WebView, url: String) {
                 injectShortsHidingCss(view)
-            }
-
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                val scheme = request.url.scheme ?: return false
-                if (scheme == "http" || scheme == "https") return false
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, request.url))
-                } catch (_: ActivityNotFoundException) {
-                }
-                return true
             }
         }
 
@@ -139,6 +123,47 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         webView.webChromeClient?.onHideCustomView()
         super.onDestroy()
+    }
+
+    private fun handleUrlOverride(rawUrl: String): Boolean {
+        val lowerUrl = rawUrl.lowercase()
+
+        if (lowerUrl.startsWith("intent://")) {
+            val isYouTubeOpenAppIntent = lowerUrl.contains("mweb_c3_open_app") ||
+                lowerUrl.contains("package=com.google.android.youtube")
+
+            if (isYouTubeOpenAppIntent) {
+                Log.d(TAG, "Blocked YouTube open-app intent: $rawUrl")
+                return true
+            }
+
+            try {
+                val intent = Intent.parseUri(rawUrl, Intent.URI_INTENT_SCHEME).apply {
+                    addCategory(Intent.CATEGORY_BROWSABLE)
+                    component = null
+                    selector = null
+                }
+                startActivity(intent)
+            } catch (_: ActivityNotFoundException) {
+                Log.d(TAG, "No app found for intent URL: $rawUrl")
+            } catch (_: Exception) {
+                Log.d(TAG, "Failed to parse intent URL: $rawUrl")
+            }
+            return true
+        }
+
+        val uri = Uri.parse(rawUrl)
+        val scheme = uri.scheme?.lowercase()
+        if (scheme == "http" || scheme == "https") {
+            return false
+        }
+
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, uri))
+        } catch (_: ActivityNotFoundException) {
+            Log.d(TAG, "No app found for external URL: $rawUrl")
+        }
+        return true
     }
 
     private fun enterFullscreenUi() {
