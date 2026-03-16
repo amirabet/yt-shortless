@@ -4,7 +4,7 @@
 
 APP_HOME=$(cd "$(dirname "$0")" && pwd)
 
-DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+DEFAULT_JVM_OPTS='-Xmx64m -Xms64m'
 
 if [ -n "$JAVA_HOME" ] ; then
   JAVA_EXE="$JAVA_HOME/bin/java"
