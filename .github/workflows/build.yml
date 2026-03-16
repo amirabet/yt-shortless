@@ -38,7 +38,8 @@ jobs:
       - name: Copy APK to apk folder
         run: |
           mkdir -p apk
-          cp app/build/outputs/apk/release/app-release.apk apk/yt-shortless-${{ steps.version.outputs.version }}.apk
+          APK=$(find app/build/outputs/apk/release/ -name "*.apk" | head -1)
+          cp "$APK" apk/yt-shortless-${{ steps.version.outputs.version }}.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
