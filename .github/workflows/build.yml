@@ -10,6 +10,8 @@ jobs:
     name: Build Signed APK
     runs-on: ubuntu-latest
     if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.merged == true
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -43,6 +45,19 @@ jobs:
         with:
           name: yt-shortless-${{ steps.version.outputs.version }}
           path: apk/yt-shortless-${{ steps.version.outputs.version }}.apk
+
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          awk "/^## \[${{ steps.version.outputs.version }}\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md > release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          files: apk/yt-shortless-${{ steps.version.outputs.version }}.apk
 
   build-debug:
     name: Build Debug APK
