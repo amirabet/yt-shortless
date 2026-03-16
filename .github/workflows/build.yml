@@ -1,0 +1,83 @@
+name: Build Android APK
+
+on:
+  pull_request:
+    branches: [ main, devel ]
+    types: [ closed ]
+
+jobs:
+  build-release:
+    name: Build Signed APK
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Get version name
+        id: version
+        run: |
+          VERSION=$(./gradlew -q :app:printVersion | grep 'versionName=' | cut -d= -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build release APK
+        run: ./gradlew :app:assembleRelease -x validateReleaseSigning
+
+      - name: Copy APK to apk folder
+        run: |
+          mkdir -p apk
+          cp app/build/outputs/apk/release/app-release.apk apk/yt-shortless-${{ steps.version.outputs.version }}.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yt-shortless-${{ steps.version.outputs.version }}
+          path: apk/yt-shortless-${{ steps.version.outputs.version }}.apk
+
+  build-debug:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'devel' && github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Get version name
+        id: version
+        run: |
+          VERSION=$(./gradlew -q :app:printVersion | grep 'versionName=' | cut -d= -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug
+
+      - name: Copy APK to apk folder
+        run: |
+          mkdir -p apk
+          cp app/build/outputs/apk/debug/app-debug.apk apk/yt-shortless-${{ steps.version.outputs.version }}-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yt-shortless-${{ steps.version.outputs.version }}-debug
+          path: apk/yt-shortless-${{ steps.version.outputs.version }}-debug.apk
