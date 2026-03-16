@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-03-16
+### Added
+- Github build actions
+
 ## [1.5.0] - 2026-02-28
 ### Fixed
 - Infinite-scroll stabilization in `MainActivity.kt` (`injectScrollFix`) to prevent YouTube feed scroll from getting stuck at the bottom when new content is appended.
