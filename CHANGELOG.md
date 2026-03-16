@@ -8,7 +8,11 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [1.5.1] - 2026-03-16
 ### Added
-- Github build actions
+- GitHub Actions CI/CD workflow (`.github/workflows/build.yml`):
+  - Automatically builds a **release APK** and publishes a **GitHub Release** (with the changelog entry as description) when a pull request is merged into `main`.
+  - Automatically builds a **debug APK** and uploads it as a workflow artifact when a pull request is merged into `devel`.
+  - APKs are named `yt-shortless-<version>.apk` and `yt-shortless-<version>-debug.apk` respectively.
+  - Release tags (`v<version>`) are created automatically from the version defined in `gradle.properties`.
 
 ## [1.5.0] - 2026-02-28
 ### Fixed
