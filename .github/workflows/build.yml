@@ -31,12 +31,11 @@ jobs:
 
       - name: Create keystore.properties
         run: |
-          cat > keystore.properties << EOF
-          storeFile=../release-keystore.jks
-          storePassword=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.RELEASE_KEY_ALIAS }}
-          keyPassword=${{ secrets.RELEASE_KEY_PASSWORD }}
-          EOF
+          printf 'storeFile=../release-keystore.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" \
+            "${{ secrets.RELEASE_KEY_ALIAS }}" \
+            "${{ secrets.RELEASE_KEY_PASSWORD }}" \
+            > keystore.properties
 
       - name: Get version name
         id: version
