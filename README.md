@@ -136,3 +136,7 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 ## License
 - This project is licensed under the MIT License.
 - See `LICENSE` for full text.
+
+## Hope it helps
+- You can install this App for free, and support me if you like. Thanks!
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U6U71W6462)
