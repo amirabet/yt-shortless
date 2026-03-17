@@ -13,6 +13,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
   - Automatically builds a **debug APK** and uploads it as a workflow artifact when a pull request is merged into `devel`.
   - APKs are named `yt-shortless-<version>.apk` and `yt-shortless-<version>-debug.apk` respectively.
   - Release tags (`v<version>`) are created automatically from the version defined in `gradle.properties`.
+  - Release APK is signed using a keystore decoded from GitHub Actions secrets (`RELEASE_KEYSTORE_BASE64`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`).
 
 ## [1.5.0] - 2026-02-28
 ### Fixed
