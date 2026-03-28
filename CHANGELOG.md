@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-03-28
+### Fixed
+- Scroll no longer jumps far after a new batch of videos loads. The scroll-back is now capped to the minimum pixels needed to exit the infinite-scroll trigger zone (often zero), and a 1.5-second cooldown prevents cascade-loading extra batches while the first set is still appearing.
+
 ## [1.7.1] - 2026-03-28
 ### Fixed
 - Improved infinite-scroll stabilization: replaced the ineffective 1-pixel scroll-back with a scroll-back equal to the full height of the newly loaded content, ensuring the page is definitively moved away from the infinite-scroll trigger zone. Added `requestAnimationFrame` debouncing to prevent rapid-fire adjustments when multiple DOM mutations occur during a single content-load batch.
