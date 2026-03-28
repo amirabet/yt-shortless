@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-03-28
+### Added
+- Auto-fullscreen on landscape rotation: the app now automatically enters fullscreen when the user rotates from portrait to landscape while a video is playing, matching the behaviour of the native YouTube app.
+- Auto-exit fullscreen on portrait rotation: rotating back to portrait while a fullscreen video is active automatically exits fullscreen.
+- Pinch-to-zoom gesture support in fullscreen mode, allowing users to zoom in on the video up to 3× while it is playing fullscreen.
+
 ## [1.6.0] - 2026-03-28
 ### Added
 - Deep-link support: the app now registers as a handler for `youtube.com`, `www.youtube.com`, `m.youtube.com`, and `youtu.be` URLs (http and https). Opening any YouTube link on the device will offer YT Shortless as a choice; selecting it loads the URL directly in the in-app WebView.
