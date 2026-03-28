@@ -335,20 +335,36 @@ class MainActivity : AppCompatActivity() {
 
                 var prevScrollHeight = document.documentElement.scrollHeight;
                 var rafPending = false;
+                var loadCooldown = false;
+                // Pixels from the bottom that count as "at the bottom" for infinite-scroll detection.
+                var TRIGGER_THRESHOLD = 50;
+                // Milliseconds to wait after one batch loads before allowing another.
+                var LOAD_COOLDOWN_MS = 1500;
 
                 window.__ytShortlessScrollFixObserver = new MutationObserver(function() {
                     if (rafPending) return;
                     var capturedPrevHeight = prevScrollHeight;
                     var scrollTop = window.scrollY || document.documentElement.scrollTop;
-                    var atBottom = (scrollTop + window.innerHeight) >= (capturedPrevHeight - 50);
+                    var atBottom = (scrollTop + window.innerHeight) >= (capturedPrevHeight - TRIGGER_THRESHOLD);
                     rafPending = true;
                     requestAnimationFrame(function() {
                         rafPending = false;
                         var newScrollHeight = document.documentElement.scrollHeight;
-                        if (newScrollHeight > capturedPrevHeight && atBottom) {
-                            window.scrollBy(0, -(newScrollHeight - capturedPrevHeight + 1));
+                        if (newScrollHeight > capturedPrevHeight && atBottom && !loadCooldown) {
+                            loadCooldown = true;
+                            var currentScrollTop = window.scrollY || document.documentElement.scrollTop;
+                            // Only scroll back the exact pixels needed to leave the trigger zone.
+                            var overshoot = Math.ceil((currentScrollTop + window.innerHeight) - (newScrollHeight - TRIGGER_THRESHOLD - 1));
+                            if (overshoot > 0) {
+                                window.scrollBy(0, -overshoot);
+                            }
+                            setTimeout(function() {
+                                loadCooldown = false;
+                                prevScrollHeight = document.documentElement.scrollHeight;
+                            }, LOAD_COOLDOWN_MS);
+                        } else if (!loadCooldown) {
+                            prevScrollHeight = newScrollHeight;
                         }
-                        prevScrollHeight = document.documentElement.scrollHeight;
                     });
                 });
                 window.__ytShortlessScrollFixObserver.observe(document.documentElement, { childList: true, subtree: true });
