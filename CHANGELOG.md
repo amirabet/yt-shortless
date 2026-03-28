@@ -6,6 +6,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-03-28
+### Added
+- Deep-link support: the app now registers as a handler for `youtube.com`, `www.youtube.com`, `m.youtube.com`, and `youtu.be` URLs (http and https). Opening any YouTube link on the device will offer YT Shortless as a choice; selecting it loads the URL directly in the in-app WebView.
+- `onNewIntent` handling so that deep-link URLs open correctly when the app is already running in the background.
+- Incoming YouTube URLs (including desktop and short `youtu.be` links) are normalised to `m.youtube.com` for consistent mobile rendering.
+
 ## [1.5.1] - 2026-03-16
 ### Added
 - GitHub Actions CI/CD workflow (`.github/workflows/build.yml`):
