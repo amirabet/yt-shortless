@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-03-28
+### Fixed
+- Improved infinite-scroll stabilization: replaced the ineffective 1-pixel scroll-back with a scroll-back equal to the full height of the newly loaded content, ensuring the page is definitively moved away from the infinite-scroll trigger zone. Added `requestAnimationFrame` debouncing to prevent rapid-fire adjustments when multiple DOM mutations occur during a single content-load batch.
+
 ## [1.7.0] - 2026-03-28
 ### Added
 - Auto-fullscreen on landscape rotation: the app now automatically enters fullscreen when the user rotates from portrait to landscape while a video is playing, matching the behaviour of the native YouTube app.
