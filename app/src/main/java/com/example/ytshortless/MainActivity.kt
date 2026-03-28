@@ -333,18 +333,23 @@ class MainActivity : AppCompatActivity() {
                 if (window.__ytShortlessScrollFix) return;
                 window.__ytShortlessScrollFix = true;
 
-                let prevScrollHeight = document.documentElement.scrollHeight;
+                var prevScrollHeight = document.documentElement.scrollHeight;
+                var rafPending = false;
 
                 window.__ytShortlessScrollFixObserver = new MutationObserver(function() {
-                    const newScrollHeight = document.documentElement.scrollHeight;
-                    if (newScrollHeight > prevScrollHeight) {
-                        const scrollTop = window.scrollY || document.documentElement.scrollTop;
-                        const atBottom = (scrollTop + window.innerHeight) >= (prevScrollHeight - 50);
-                        if (atBottom) {
-                            window.scrollBy(0, -1);
+                    if (rafPending) return;
+                    var capturedPrevHeight = prevScrollHeight;
+                    var scrollTop = window.scrollY || document.documentElement.scrollTop;
+                    var atBottom = (scrollTop + window.innerHeight) >= (capturedPrevHeight - 50);
+                    rafPending = true;
+                    requestAnimationFrame(function() {
+                        rafPending = false;
+                        var newScrollHeight = document.documentElement.scrollHeight;
+                        if (newScrollHeight > capturedPrevHeight && atBottom) {
+                            window.scrollBy(0, -(newScrollHeight - capturedPrevHeight + 1));
                         }
-                        prevScrollHeight = newScrollHeight;
-                    }
+                        prevScrollHeight = document.documentElement.scrollHeight;
+                    });
                 });
                 window.__ytShortlessScrollFixObserver.observe(document.documentElement, { childList: true, subtree: true });
             })();
