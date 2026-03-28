@@ -3,11 +3,15 @@ package com.example.ytshortless
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.WindowManager
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -24,13 +28,18 @@ import androidx.core.view.WindowInsetsControllerCompat
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
+        private const val MAX_FULLSCREEN_ZOOM = 3.0f
     }
 
     private lateinit var webView: WebView
     private lateinit var fullscreenContainer: FrameLayout
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
-    private var previousRequestedOrientation: Int = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+
+    @Volatile
+    private var isVideoPlaying = false
+    private var scaleGestureDetector: ScaleGestureDetector? = null
+    private var currentScale = 1.0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +48,8 @@ class MainActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
         configureWebView(webView)
+
+        webView.addJavascriptInterface(VideoStateInterface(), "YTShortlessNative")
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -53,6 +64,7 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 injectShortsHidingCss(view)
                 injectScrollFix(view)
+                injectVideoPlaybackTracking(view)
             }
         }
 
@@ -74,22 +86,23 @@ class MainActivity : AppCompatActivity() {
                         FrameLayout.LayoutParams.MATCH_PARENT
                     )
                 )
-                previousRequestedOrientation = requestedOrientation
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 enterFullscreenUi()
+                setupFullscreenZoom()
             }
 
             override fun onHideCustomView() {
                 if (customView == null) return
 
+                teardownFullscreenZoom()
                 fullscreenContainer.removeView(customView)
                 fullscreenContainer.visibility = View.GONE
                 webView.visibility = View.VISIBLE
                 customView = null
                 customViewCallback?.onCustomViewHidden()
                 customViewCallback = null
-                requestedOrientation = previousRequestedOrientation
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 exitFullscreenUi()
             }
@@ -100,7 +113,10 @@ class MainActivity : AppCompatActivity() {
             webView.loadUrl(urlToLoad)
         } else {
             webView.restoreState(savedInstanceState)
-            webView.post { injectShortsHidingCss(webView) }
+            webView.post {
+                injectShortsHidingCss(webView)
+                injectVideoPlaybackTracking(webView)
+            }
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -125,6 +141,33 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         webView.webChromeClient?.onHideCustomView()
         super.onDestroy()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Both this callback and WebChromeClient callbacks run on the main thread,
+        // so customView is consistent. isVideoPlaying is @Volatile for cross-thread visibility.
+        when (newConfig.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                if (isVideoPlaying && customView == null) {
+                    triggerFullscreenJs()
+                }
+            }
+            Configuration.ORIENTATION_PORTRAIT -> {
+                if (customView != null) {
+                    webView.webChromeClient?.onHideCustomView()
+                }
+            }
+        }
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        // scaleGestureDetector is set/cleared on the main thread together with customView,
+        // so the null-safe call is consistent with the customView guard.
+        if (customView != null) {
+            scaleGestureDetector?.onTouchEvent(ev)
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -315,5 +358,96 @@ class MainActivity : AppCompatActivity() {
             .replace("\\", "\\\\")
             .replace("'", "\\'")
             .replace("\n", "\\n") + "'"
+    }
+
+    private fun triggerFullscreenJs() {
+        val script = """
+            (function() {
+                var btn = document.querySelector('button.fullscreen-icon') ||
+                          document.querySelector('button[aria-label*="full screen" i]') ||
+                          document.querySelector('button[aria-label*="fullscreen" i]') ||
+                          document.querySelector('.ytp-fullscreen-button') ||
+                          document.querySelector('ytm-custom-fullscreen-button-renderer button') ||
+                          document.querySelector('button.player-fullscreen-icon');
+                if (btn) { btn.click(); return; }
+                var video = document.querySelector('video');
+                if (video && video.requestFullscreen) { video.requestFullscreen(); }
+            })();
+        """.trimIndent()
+        webView.evaluateJavascript(script, null)
+    }
+
+    private fun setupFullscreenZoom() {
+        currentScale = 1.0f
+        scaleGestureDetector = ScaleGestureDetector(
+            this,
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    currentScale = (currentScale * detector.scaleFactor).coerceIn(1.0f, MAX_FULLSCREEN_ZOOM)
+                    customView?.scaleX = currentScale
+                    customView?.scaleY = currentScale
+                    return true
+                }
+            }
+        )
+    }
+
+    private fun teardownFullscreenZoom() {
+        scaleGestureDetector = null
+        customView?.scaleX = 1.0f
+        customView?.scaleY = 1.0f
+        currentScale = 1.0f
+    }
+
+    inner class VideoStateInterface {
+        @JavascriptInterface
+        fun onVideoPlay() {
+            isVideoPlaying = true
+        }
+
+        @JavascriptInterface
+        fun onVideoPause() {
+            isVideoPlaying = false
+        }
+    }
+
+    private fun injectVideoPlaybackTracking(view: WebView) {
+        val script = """
+            (function() {
+                if (window.__ytVideoTracker) return;
+                window.__ytVideoTracker = true;
+
+                function attachVideoListeners(video) {
+                    if (video.__ytTracked) return;
+                    video.__ytTracked = true;
+                    video.addEventListener('play', function() {
+                        if (window.YTShortlessNative) { window.YTShortlessNative.onVideoPlay(); }
+                    });
+                    video.addEventListener('pause', function() {
+                        if (window.YTShortlessNative) { window.YTShortlessNative.onVideoPause(); }
+                    });
+                    video.addEventListener('ended', function() {
+                        if (window.YTShortlessNative) { window.YTShortlessNative.onVideoPause(); }
+                    });
+                    if (!video.paused) {
+                        if (window.YTShortlessNative) { window.YTShortlessNative.onVideoPlay(); }
+                    }
+                }
+
+                document.querySelectorAll('video').forEach(attachVideoListeners);
+
+                new MutationObserver(function(mutations) {
+                    mutations.forEach(function(m) {
+                        m.addedNodes.forEach(function(node) {
+                            if (node.nodeName === 'VIDEO') { attachVideoListeners(node); }
+                            if (node.querySelectorAll) {
+                                node.querySelectorAll('video').forEach(attachVideoListeners);
+                            }
+                        });
+                    });
+                }).observe(document.documentElement, { childList: true, subtree: true });
+            })();
+        """.trimIndent()
+        view.evaluateJavascript(script, null)
     }
 }
