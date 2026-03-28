@@ -4,10 +4,11 @@ This simple Android App tries to offer the closest Youtube experience (based on 
 This project is for personal use and with no commercial goals (MIT), and has been created using VibeCoding methodology using Copilot in VSCode.
 
 ## Requirements
-- Android Studio (Giraffe+ recommended)
+- Android Studio (Giraffe+ recommended) — only needed for local development
 - Android SDK with API 34
 - Java 17 (Android Studio includes a JDK)
 - Gradle wrapper included (no need to install Gradle globally)
+- For CI/CD: a GitHub repository with the 4 signing secrets configured (see [Release Signing](#release-signing-shareable-apk))
 
 ## Features
 - Opens `https://m.youtube.com` in a WebView
@@ -40,47 +41,63 @@ APK output:
 - `app\build\outputs\apk\debug\app-debug.apk`
 
 ## Release Signing (Shareable APK)
-1. Set Java for the current PowerShell session:
+
+From **v1.5.1 onwards**, release APKs are built and signed automatically by GitHub Actions when a pull request is merged into `main`. No manual signing steps are needed.
+
+### GitHub Actions signing setup (one-time)
+
+1. Generate a JKS keystore (use the **same password** for store and key — required for JKS format):
+
+```powershell
+$env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
+& "$env:JAVA_HOME\bin\keytool" -genkeypair -v `
+  -keystore release-keystore.jks `
+  -storetype JKS `
+  -keyalg RSA -keysize 2048 -validity 10000 `
+  -alias release `
+  -storepass YOUR_PASSWORD `
+  -keypass YOUR_PASSWORD `
+  -dname "CN=YourName, O=YourOrg, C=US"
+```
+
+2. Encode the keystore to base64 (copies to clipboard):
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\release-keystore.jks")) | Set-Clipboard
+```
+
+3. Add these 4 secrets to your GitHub repo (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|---|---|
+| `RELEASE_KEYSTORE_BASE64` | Paste from clipboard |
+| `RELEASE_KEYSTORE_PASSWORD` | Your keystore/key password |
+| `RELEASE_KEY_ALIAS` | `release` |
+| `RELEASE_KEY_PASSWORD` | Same as `RELEASE_KEYSTORE_PASSWORD` |
+
+### Local release build (optional)
+
+For local testing only. Requires `keystore.properties` to be present:
+
+1. Copy `keystore.properties.example` → `keystore.properties` and fill in the values.
+2. Build:
 
 ```powershell
 $env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
-```
-
-2. Generate a release keystore (one-time):
-
-```powershell
-keytool -genkeypair -v -keystore release-keystore.jks -alias release -keyalg RSA -keysize 2048 -validity 10000
-```
-
-3. Create signing config file from template:
-	- Copy `keystore.properties.example` to `keystore.properties`.
-	- Fill `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
-	- If the keystore is in project root, use: `storeFile=../release-keystore.jks`.
-
-4. (Optional) Validate signing config:
-
-```powershell
-.\gradlew.bat :app:validateReleaseSigning
-```
-
-5. Build signed release APK:
-
-```powershell
 .\gradlew.bat :app:assembleRelease
 ```
 
-Release output:
-- `app\build\outputs\apk\release\app-release.apk`
+Release output: `app\build\outputs\apk\release\app-release.apk`
 
 ## APK Archive Folder
-- The project includes an `apk` folder used to keep versioned copies of generated APKs for easy sharing/testing.
-- You can browse archived packages here: [apk](apk/).
-- Naming convention example: `yt-shortless-1.2.0.apk`.
+- From **v1.5.1 onwards**, release APKs are published automatically as **GitHub Releases** and attached to the corresponding tag (`v<version>`).
+- The `apk/` folder is kept as a **legacy archive** for versions prior to `1.5.1`. No new APKs will be added there manually.
+- You can browse legacy packages here: [apk](apk/).
 
 Important:
-- Keep `release-keystore.jks` and `keystore.properties` backed up securely.
-- You must keep the same keystore to publish future updates with the same package name.
+- Keep `release-keystore.jks` backed up securely (outside the repo).
+- You must use the same keystore for all future releases — losing it prevents publishing updates under the same package name.
 
 ### Troubleshooting release builds
 - Error: `Missing keystore.properties`
@@ -107,7 +124,10 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 - `versionCode` is generated as `MAJOR * 10000 + MINOR * 100 + PATCH`.
 - Add release notes in `CHANGELOG.md` before each release.
 - Print current values with: `./gradlew :app:printVersion` (PowerShell: `.\gradlew.bat :app:printVersion`).
-- Release builds validate signing config with: `.\gradlew.bat :app:validateReleaseSigning`.
+
+### CI/CD Workflow
+- Merging a PR into `main` → builds a **signed release APK**, creates a **GitHub Release** with changelog notes, and attaches the APK.
+- Merging a PR into `devel` → builds a **debug APK** and uploads it as a workflow artifact.
 
 ## Notes
 - If you need to update the Gradle wrapper, download the official Gradle ZIP and copy `gradle-wrapper.jar` from `lib`.
@@ -116,3 +136,7 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 ## License
 - This project is licensed under the MIT License.
 - See `LICENSE` for full text.
+
+## Hope it helps
+- You can install this App for free, and support me if you like. Thanks!
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U6U71W6462)

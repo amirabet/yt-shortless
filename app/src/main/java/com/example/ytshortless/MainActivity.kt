@@ -96,7 +96,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            webView.loadUrl("https://m.youtube.com")
+            val urlToLoad = resolveIntentUrl(intent) ?: "https://m.youtube.com"
+            webView.loadUrl(urlToLoad)
         } else {
             webView.restoreState(savedInstanceState)
             webView.post { injectShortsHidingCss(webView) }
@@ -124,6 +125,31 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         webView.webChromeClient?.onHideCustomView()
         super.onDestroy()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val url = resolveIntentUrl(intent)
+        if (url != null) {
+            webView.loadUrl(url)
+        }
+    }
+
+    private fun resolveIntentUrl(intent: Intent): String? {
+        if (intent.action != Intent.ACTION_VIEW) return null
+        val uri = intent.data ?: return null
+        val scheme = uri.scheme?.lowercase()
+        if (scheme != "http" && scheme != "https") return null
+        val host = uri.host?.lowercase() ?: return null
+        val youtubeHosts = setOf("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be")
+        if (host !in youtubeHosts) return null
+        // Normalise desktop/short URLs to the mobile YouTube host the WebView uses
+        return uri.buildUpon()
+            .scheme("https")
+            .authority("m.youtube.com")
+            .build()
+            .toString()
     }
 
     private fun handleUrlOverride(rawUrl: String): Boolean {
