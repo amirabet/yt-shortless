@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-04-04
+### Fixed
+- `youtu.be` short links (e.g. `https://youtu.be/VIDEO_ID?si=…`) now open correctly when the app handles them as a deep link. Previously, the URL was rewritten to `m.youtube.com/VIDEO_ID` (a 404 page) instead of `m.youtube.com/watch?v=VIDEO_ID`. Extra query parameters such as the `si` tracking token are preserved.
+
 ## [1.7.2] - 2026-03-28
 ### Fixed
 - Scroll no longer jumps far after a new batch of videos loads. The scroll-back is now capped to the minimum pixels needed to exit the infinite-scroll trigger zone (often zero), and a 1.5-second cooldown prevents cascade-loading extra batches while the first set is still appearing.
