@@ -187,7 +187,26 @@ class MainActivity : AppCompatActivity() {
         val host = uri.host?.lowercase() ?: return null
         val youtubeHosts = setOf("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be")
         if (host !in youtubeHosts) return null
-        // Normalise desktop/short URLs to the mobile YouTube host the WebView uses
+
+        // youtu.be/VIDEO_ID short links must be rewritten to m.youtube.com/watch?v=VIDEO_ID
+        // so that the WebView loads the correct page instead of a "not found" page.
+        if (host == "youtu.be") {
+            val videoId = uri.path?.trimStart('/')?.takeIf { it.isNotEmpty() } ?: return null
+            val builder = Uri.Builder()
+                .scheme("https")
+                .authority("m.youtube.com")
+                .path("/watch")
+                .appendQueryParameter("v", videoId)
+            // Preserve any extra query parameters from the original URL (e.g. "si" tracking token)
+            uri.queryParameterNames.forEach { name ->
+                uri.getQueryParameters(name).forEach { value ->
+                    builder.appendQueryParameter(name, value)
+                }
+            }
+            return builder.build().toString()
+        }
+
+        // Normalise desktop URLs to the mobile YouTube host the WebView uses
         return uri.buildUpon()
             .scheme("https")
             .authority("m.youtube.com")
